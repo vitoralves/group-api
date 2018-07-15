@@ -11,7 +11,7 @@ public interface ProductService {
 	
 	Map<String, List<Product>> defaultOrder(Map<String, List<Product>> map);
 	
-	Map<String, List<Product>> groupBy(List<Product> list, String attribute);
+	Map<String, List<Product>> groupBy(List<Product> list, String attribute) throws Exception;
 	
 	Map<String, List<Product>> orderBy(Map<String, List<Product>> map, String order) throws Exception;
 }

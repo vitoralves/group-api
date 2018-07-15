@@ -49,7 +49,14 @@ public class ProductController {
 		Map<String, List<Product>> map = new HashMap<String, List<Product>>();
 
 		if (group != null && !group.isEmpty()) {
-			map = service.groupBy(list, group);
+			try {
+				map = service.groupBy(list, group);
+			} catch (Exception e) {
+				List<String> errors = new ArrayList<>();
+				errors.add(e.getMessage());
+				response.setErrors(errors);
+				return ResponseEntity.badRequest().body(response);
+			}
 		} else {
 			// result of grouping and sorting
 			map = service.defaultGroup(list);

@@ -36,7 +36,7 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
-	public Map<String, List<Product>> groupBy(List<Product> list, String attribute) {
+	public Map<String, List<Product>> groupBy(List<Product> list, String attribute) throws Exception {
 
 		Map<String, List<Product>> r = new HashMap<String, List<Product>>();
 
@@ -57,8 +57,7 @@ public class ProductServiceImpl implements ProductService {
 			r = list.stream().collect(groupingBy(Product::getBrand));
 			break;
 		default:
-			r = list.stream().collect(groupingBy(Product::getEan));
-			break;
+			throw new Exception("Attribute does not exist on class Product!");
 		}
 		return r;
 	}
@@ -79,9 +78,10 @@ public class ProductServiceImpl implements ProductService {
 	@Override
 	public Map<String, List<Product>> orderBy(Map<String, List<Product>> map, String order) throws Exception {
 		String[] s = order.split(":");
-		
+
 		if (!order.contains(":") || s.length != 2) {
-			throw new Exception("Invalid format. The correct is ..?order={class attribute}:{asc/desc} and both can't be empty!");
+			throw new Exception(
+					"Invalid format. The correct is ..?order={class attribute}:{asc/desc} and both can't be empty!");
 		}
 
 		switch (s[0].trim().toLowerCase()) {
@@ -121,6 +121,8 @@ public class ProductServiceImpl implements ProductService {
 						: Comparator.comparing(Product::getId).reversed());
 			});
 			break;
+		default:
+			throw new Exception("Attribute " + order + " does not exist on class Product");
 		}
 
 		return map;

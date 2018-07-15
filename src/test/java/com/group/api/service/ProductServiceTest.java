@@ -64,9 +64,10 @@ public class ProductServiceTest {
 	 * 
 	 * Testando aqui agrupamento por marca
 	 * Deve funcionar passando o atributo maísculo também
+	 * @throws Exception 
 	 */
 	@Test
-	public void testGroupByBrand() {
+	public void testGroupByBrand() throws Exception {
 		List<Product> list = returnProductList();
 		Map<String, List<Product>> groupedMap = this.service.groupBy(list, "BRAND");
 		
@@ -79,9 +80,10 @@ public class ProductServiceTest {
 	 * Caso não for encontrado por padrão será agrupado por EAN identicos
 	 * 
 	 * Testando aqui agrupamento por EAN
+	 * @throws Exception 
 	 */
 	@Test
-	public void testGroupByEAN() {
+	public void testGroupByEAN() throws Exception {
 		List<Product> list = returnProductList();
 		Map<String, List<Product>> groupedMap = this.service.groupBy(list, "ean");
 		
@@ -91,17 +93,15 @@ public class ProductServiceTest {
 	
 	/**
 	 * Teste que agrupa a lista de acordo com o atributo de classe escolhido e passado por parametro
-	 * Caso não for encontrado por padrão será agrupado por EAN identicos
+	 * Caso não for encontrado por padrão será retornada uma exceção
 	 * 
-	 * Testando aqui agrupamento passando um atributo inexistente, deve agrupar por EAN
+	 * Testando aqui agrupamento passando um atributo inexistente, deve retornar uma mensagem informando a exceção
+	 * @throws Exception 
 	 */
-	@Test
-	public void testGroupByNonexistentAttribute() {
+	@Test(expected = Exception.class)
+	public void testGroupByNonexistentAttribute() throws Exception {
 		List<Product> list = returnProductList();
-		Map<String, List<Product>> groupedMap = this.service.groupBy(list, "description");
-		
-		assertTrue(!groupedMap.get(EAN).isEmpty());
-		assertTrue(groupedMap.get(EAN).size() == 3);
+		this.service.groupBy(list, "description");
 	}
 	
 	/**
@@ -149,7 +149,7 @@ public class ProductServiceTest {
 	@Test(expected = Exception.class)
 	public void testOrderByIdInvalidFormat() throws Exception {
 		Map<String, List<Product>> map = returnMap();
-		Map<String, List<Product>> orderedMap = this.service.orderBy(map, "ID");
+		this.service.orderBy(map, "ID");
 	}
 	
 	/**
@@ -164,8 +164,24 @@ public class ProductServiceTest {
 	@Test(expected = Exception.class)
 	public void testOrderByIdInvalidFormatOrientation() throws Exception {
 		Map<String, List<Product>> map = returnMap();
-		Map<String, List<Product>> orderedMap = this.service.orderBy(map, "ID:");
+		this.service.orderBy(map, "ID:");
 	}
+	
+	/**
+	 * Tentado ordenar lista passando um parâmetro que não existe
+	 * 
+	 * No parâmetro deve ser passado o campo que deseja-se ordenação e a orientação
+	 * Exemplos: id:asc ou ead:desc
+	 * 
+	 * Quando o attributo não for encontrado uma exception é retornada
+	 * @throws Exception
+	 */
+	@Test(expected = Exception.class)
+	public void testOrderByIdInvalidAttribute() throws Exception {
+		Map<String, List<Product>> map = returnMap();
+		this.service.orderBy(map, "description");
+	}
+	
 	
 	private List<Product> returnProductList() {
 		int aux = 0;
