@@ -16,14 +16,17 @@ public class ProductServiceImpl implements ProductService {
 		Map<String, List<Product>> map = new HashMap<>();
 		Map<String, List<Product>> mapEan = new HashMap<>();
 		Map<String, List<Product>> mapBrand = new HashMap<>();
-		Map<Object, List<Product>> titleMap = new HashMap<>();
+		Map<String, List<Product>> titleMap = groupByTitle(list);;
 		Map<String, List<Product>> finalMap = new HashMap<>();
 
 		mapEan = list.stream().collect(Collectors.groupingBy(Product::getEan));
 
 		mapBrand = list.stream().collect(Collectors.groupingBy(Product::getBrand));
-
-		map = Stream.concat(mapBrand.entrySet().stream(), mapEan.entrySet().stream())
+		
+		map = Stream.concat(mapEan.entrySet().stream(), titleMap.entrySet().stream())
+				.collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
+		
+		map = Stream.concat(map.entrySet().stream(), mapBrand.entrySet().stream())
 				.collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
 
 		map.entrySet().stream().forEach(m -> {
@@ -128,4 +131,25 @@ public class ProductServiceImpl implements ProductService {
 		return map;
 	}
 
+	private Map<String, List<Product>> groupByTitle(List<Product> list) {
+		List<Product> newl = list;
+		Map<String, List<Product>> map = new HashMap<>();
+		
+		list.forEach(f -> {
+			String title = f.getTitle().substring(0, (f.getTitle().length()/3));
+			String id = f.getId();
+			List<Product> listSimilar = new ArrayList<>();
+			newl.forEach(l -> {
+				if (l.getTitle().startsWith(title) && !l.getId().equals(id)) {
+					listSimilar.add(l);
+					listSimilar.add(f);
+				}
+			});
+			if(!listSimilar.isEmpty()) {
+				map.put(f.getTitle(), listSimilar);
+			}
+		});
+		
+		return map;
+	}
 }
