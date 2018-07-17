@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import static java.util.stream.Collectors.*;
+
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.springframework.stereotype.Service;
 import com.group.api.model.Product;
 import com.group.api.service.ProductService;
@@ -16,22 +18,28 @@ public class ProductServiceImpl implements ProductService {
 		Map<String, List<Product>> map = new HashMap<>();
 		Map<String, List<Product>> mapEan = new HashMap<>();
 		Map<String, List<Product>> mapBrand = new HashMap<>();
-		Map<String, List<Product>> titleMap = groupByTitle(list);;
+		// hashmap grouped by title similarity >= 70%
+		Map<String, List<Product>> titleMap = groupByTitle(list);
 		Map<String, List<Product>> finalMap = new HashMap<>();
 
+		// map grouped by EAN
 		mapEan = list.stream().collect(Collectors.groupingBy(Product::getEan));
 
+		// map grouped by BRAN
 		mapBrand = list.stream().collect(Collectors.groupingBy(Product::getBrand));
-		
+
+		// concat mapEAN with title map according priority
 		map = Stream.concat(mapEan.entrySet().stream(), titleMap.entrySet().stream())
 				.collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
-		
+
+		// concat according priority
 		map = Stream.concat(map.entrySet().stream(), mapBrand.entrySet().stream())
 				.collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
 
 		map.entrySet().stream().forEach(m -> {
+			// insert into final map only items witch were grouped
 			if (m.getValue().size() > 1) {
-				finalMap.put(m.getKey(), m.getValue());
+				finalMap.put(m.getKey(), m.getValue());				
 			}
 		});
 
@@ -51,14 +59,14 @@ public class ProductServiceImpl implements ProductService {
 			r = list.stream().collect(groupingBy(Product::getEan));
 			break;
 		case "title":
-			r = list.stream().collect(groupingBy(Product::getTitle));
+			r = groupByTitle(list);
 			break;
 		case "brand":
 			r = list.stream().collect(groupingBy(Product::getBrand));
 			break;
-		case "stock":
-			r = list.stream().collect(groupingBy(Product::getBrand));
-			break;
+//		case "stock":
+//			r = list.stream().collect(groupingBy(Product::getBrand));
+//			break;
 		default:
 			throw new Exception("Attribute does not exist on class Product!");
 		}
@@ -131,25 +139,69 @@ public class ProductServiceImpl implements ProductService {
 		return map;
 	}
 
-	private Map<String, List<Product>> groupByTitle(List<Product> list) {
-		List<Product> newl = list;
+	/**
+	 * This method returns a map grouped by product title similarity
+	 * if the similarity is 70% or more 
+	 * @param list
+	 * @return
+	 */
+	public Map<String, List<Product>> groupByTitle(List<Product> list) {
 		Map<String, List<Product>> map = new HashMap<>();
-		
-		list.forEach(f -> {
-			String title = f.getTitle().substring(0, (f.getTitle().length()/3));
-			String id = f.getId();
+		//copy of list to remove grouped items 
+		List<Product> removes = new ArrayList<>(list);
+
+		for (Product p : new ArrayList<>(removes)) {
 			List<Product> listSimilar = new ArrayList<>();
-			newl.forEach(l -> {
-				if (l.getTitle().startsWith(title) && !l.getId().equals(id)) {
-					listSimilar.add(l);
-					listSimilar.add(f);
+			//pass current product title to compare to all items of list
+			//if other product has title with 70% or more similarity we group them
+			listSimilar = similarity(p.getTitle(), removes);
+			//verify similarity with this product
+			if (listSimilar.size() > 1) {
+				listSimilar.forEach(l -> {
+					//remove grouped products to avoid duplicates
+					removes.remove(l);
+				});
+				
+				map.put(p.getTitle(), listSimilar);
+			}
+		}
+		
+		System.out.println(map);
+		return map;
+	}
+
+	/**
+	 * Calculates the similarity (a number within 0 and 1) between two strings.
+	 * In this case compare a product title with all products in list
+	 * if the similarity is 70% or more add to list
+	 */
+	public List<Product> similarity(String s1, List<Product> list) {
+		List<Product> similar = new ArrayList<>();
+		
+		list.forEach(l -> {
+			String longer = s1, shorter = l.getTitle();
+			if (s1.length() < l.getTitle().length()) { // longer should always have greater length
+				longer = l.getTitle();
+				shorter = s1;
+			}
+			int longerLength = longer.length();
+			/* both strings are zero length */
+			if (longerLength == 0) {
+				similar.add(l);
+			} else {
+				/*
+				 * Using Apache Commons Text, to calculate the edit distance
+				 * 
+				 */
+				LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
+				double result = (longerLength - levenshteinDistance.apply(longer, shorter)) / (double) longerLength;
+				
+				if (result >= 0.7) {
+					similar.add(l);
 				}
-			});
-			if(!listSimilar.isEmpty()) {
-				map.put(f.getTitle(), listSimilar);
 			}
 		});
 		
-		return map;
+		return similar;
 	}
 }

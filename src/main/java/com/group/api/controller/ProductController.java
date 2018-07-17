@@ -78,6 +78,7 @@ public class ProductController {
 		// create response objects
 		map.entrySet().stream().forEach(f -> {
 			Result r = new Result();
+			//alter description name 
 			if (group != null && (group.equals("ean") || group.equals("title"))
 					|| (!f.getKey().equals(f.getValue().get(0).getBrand()))) {
 				r.setDescription(f.getValue().get(0).getTitle());
@@ -85,8 +86,11 @@ public class ProductController {
 				r.setDescription(f.getKey());
 			}
 			r.setItems(f.getValue());
-
-			resultList.add(r);
+			
+			//map was grouped and ordered, so we can find for duplicates
+			if (!resultList.stream().filter(rl -> rl.getDescription().equals(r.getDescription())).findFirst().isPresent()) {
+				resultList.add(r);
+			}
 		});
 
 		response.setData(resultList);

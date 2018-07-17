@@ -182,6 +182,51 @@ public class ProductServiceTest {
 		this.service.orderBy(map, "description");
 	}
 	
+	/**
+	 * Teste que deve agrupar produtos em um mapa com similaridade de nome de 70% ou mais
+	 */
+	@Test
+	public void testGroupByTitle() {
+		List<Product> list = new ArrayList<>();
+		Product p1 = new Product();
+		p1.setTitle("Cruzador espacial Ekul - 3000m - sem garantia");
+		
+		Product p2 = new Product();
+		p2.setTitle("Cruzador espacial Nikana - 3000m - com garantia");
+		
+		Product p3 = new Product();
+		p3.setTitle("Espada de fótons NIKANA azul");
+		
+		list.add(p1);
+		list.add(p2);
+		list.add(p3);
+		
+		Map<String, List<Product>> map = service.groupByTitle(list);
+		assertTrue(map.get("Cruzador espacial Ekul - 3000m - sem garantia").size() == 2);
+	}
+	
+	/**
+	 * Teste que retorna lista de produtos agrupada por similaridade de nome com 70% ou mais
+	 */
+	@Test
+	public void testSimilarity() {
+		List<Product> list = new ArrayList<>();
+		Product p1 = new Product();
+		p1.setTitle("Cruzador espacial Ekul - 3000m - sem garantia");
+		
+		Product p2 = new Product();
+		p2.setTitle("Espada de Fótons REDAV Azul");
+		
+		Product p3 = new Product();
+		p3.setTitle("Espada de fótons NIKANA azul");
+		
+		list.add(p1);
+		list.add(p2);
+		list.add(p3);
+		
+		List<Product> grouped = service.similarity("Espada de Fótons NIKANA azul", list);
+		assertTrue(grouped.size() == 2);
+	}
 	
 	private List<Product> returnProductList() {
 		int aux = 0;
