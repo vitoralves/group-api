@@ -37,6 +37,7 @@ public class ProductController {
 
 	@PostMapping
 	public ResponseEntity<Response<List<Result>>> group(@Valid @RequestBody List<Product> list,
+			@RequestParam(value = "filter", required = false) String filter,
 			@RequestParam(value = "group", required = false) String group,
 			@RequestParam(value = "order", required = false) String order, BindingResult result)
 			throws NoSuchAlgorithmException {
@@ -47,6 +48,18 @@ public class ProductController {
 		// list to insert results of grouping
 		List<Result> resultList = new ArrayList<>();
 		Map<String, List<Product>> map = new HashMap<String, List<Product>>();
+
+		// the first step is filter the list
+		if (filter != null && !filter.isEmpty()) {
+			try {
+				list = service.filterBy(filter, list);
+			} catch (Exception e) {
+				List<String> errors = new ArrayList<>();
+				errors.add(e.getMessage());
+				response.setErrors(errors);
+				return ResponseEntity.badRequest().body(response);
+			}
+		}
 
 		if (group != null && !group.isEmpty()) {
 			try {
@@ -78,7 +91,7 @@ public class ProductController {
 		// create response objects
 		map.entrySet().stream().forEach(f -> {
 			Result r = new Result();
-			//alter description name 
+			// alter description name
 			if (group != null && (group.equals("ean") || group.equals("title"))
 					|| (!f.getKey().equals(f.getValue().get(0).getBrand()))) {
 				r.setDescription(f.getValue().get(0).getTitle());
@@ -86,9 +99,10 @@ public class ProductController {
 				r.setDescription(f.getKey());
 			}
 			r.setItems(f.getValue());
-			
-			//map was grouped and ordered, so we can find for duplicates
-			if (!resultList.stream().filter(rl -> rl.getDescription().equals(r.getDescription())).findFirst().isPresent()) {
+
+			// map was grouped and ordered, so we can find for duplicates
+			if (!resultList.stream().filter(rl -> rl.getDescription().equals(r.getDescription())).findFirst()
+					.isPresent()) {
 				resultList.add(r);
 			}
 		});

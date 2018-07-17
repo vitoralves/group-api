@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -226,6 +228,41 @@ public class ProductServiceTest {
 		
 		List<Product> grouped = service.similarity("Espada de Fótons NIKANA azul", list);
 		assertTrue(grouped.size() == 2);
+	}
+	
+	/**
+	 * Ao passar uma lista de produtos o método deve retornar um map com os
+	 * produtos de mesmo estoque agrupados
+	 * 
+	 * Como no método returnProductList estamos repetindo o número de estoque de dois produtos
+	 * a lista de agrupamento deve conter 2 elementos e somente um elemento no map
+	 */
+	@Test
+	public void testGroupByStock() {
+		Map<String, List<Product>> grouped = service.groupByStock(returnProductList());
+		assertTrue(grouped.size() == 1 && grouped.entrySet().iterator().next().getValue().size() == 2);
+	}
+	
+	/**
+	 * Método que recebe lista de produtos e deve devolver um map com agrupamento por mesmo preço
+	 * 
+	 * Adiciono um novo produto na lista pré criada repetindo dois valores de preço
+	 * o resultado esperado é o agrupamento desses dois produtos e somente um elemento no map
+	 */
+	@Test
+	public void testGroupByPrice() {
+		List<Product> list = returnProductList();
+		Product p = new Product();
+		p.setBrand(RandomStringUtils.randomAlphabetic(20));
+		p.setEan(RandomStringUtils.randomAlphabetic(20));
+		p.setId(RandomStringUtils.randomAlphabetic(20));
+		p.setStock(99);
+		p.setTitle(RandomStringUtils.randomAlphabetic(20));
+		p.setPrice(4.0);
+		list.add(p);
+		
+		Map<String, List<Product>> grouped = service.groupByPrice(list);
+		assertTrue(grouped.size() == 1 && grouped.entrySet().iterator().next().getValue().size() == 2);
 	}
 	
 	private List<Product> returnProductList() {

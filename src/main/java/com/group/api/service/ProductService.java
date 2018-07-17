@@ -6,7 +6,9 @@ import java.util.Map;
 import com.group.api.model.Product;
 
 public interface ProductService {
-
+	
+	List<Product> filterBy(String filter, List<Product> list) throws Exception;
+	
 	Map<String, List<Product>> defaultGroup(List<Product> list);
 	
 	Map<String, List<Product>> defaultOrder(Map<String, List<Product>> map);
@@ -18,4 +20,8 @@ public interface ProductService {
 	Map<String, List<Product>> groupByTitle(List<Product> list);
 	
 	List<Product> similarity(String s, List<Product> list);
+	
+	Map<String, List<Product>> groupByStock(List<Product> list);
+	
+	Map<String, List<Product>> groupByPrice(List<Product> list);
 }
