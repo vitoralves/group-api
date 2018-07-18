@@ -22,7 +22,7 @@ Endpoint para enviar uma lista e produtos. [POST] https://group-api.herokuapp.co
 
 # Execução 
 
-O arquivo compilado para execução está na pasta target/group-api-0.0.1-SNAPSHOT.jar e pode ser executado com o comando java - jar -Dserver.port=${PORTA PADRAO = 8080} group-api-0.0.1-SNAPSHOT.jar
+O arquivo compilado para execução está na raiz do projeto group-api-0.0.1-SNAPSHOT.jar e pode ser executado com o comando java - jar -Dserver.port=${PORTA PADRAO = 8080} group-api-0.0.1-SNAPSHOT.jar
 
 
 
